@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name": { "type": "string", "description": "A human-readable name." },
+    "enabled": { "type": "boolean", "description": "Whether this entry is enabled." },
+    "anchor": { "type": "string" },
+    "copy": { "type": "string" },
+    "items": { "type": "array", "items": { "type": "string" } },
+    "parent": { "type": "object" },
+    "group": { "type": "object" },
+    "$ref": { "type": "string" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=./schema.json
+name:      42
+anchor: &shared hello
+copy: *shared
+items: [one,two]
+parent:
+
+group:
+  child: value
+$ref: "#/name"

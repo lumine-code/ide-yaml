@@ -1,0 +1,123 @@
+{
+  "name": "ide-yaml full feature matrix",
+  "adapter": "ide-yaml",
+  "project": "fixtures/drive",
+  "file": "fixtures/drive/fixture.yaml",
+  "grammarScope": "source.yaml",
+  "config": {
+    "ide-yaml.yaml.schemaStore.enable": false,
+    "ide-yaml.yaml.kubernetesCRDStore.enable": false
+  },
+  "checks": [
+    {
+      "name": "diagnostics",
+      "kind": "diagnostics",
+      "minLength": 1,
+      "expect": { "path": "*.message", "matches": "Expected \\\"string\\\"" }
+    },
+    {
+      "name": "completion",
+      "method": "textDocument/completion",
+      "position": [1, 0],
+      "params": { "context": { "triggerKind": 1 } },
+      "expect": { "path": "items.*.label", "includes": "enabled" }
+    },
+    {
+      "name": "hover",
+      "method": "textDocument/hover",
+      "position": [1, 1],
+      "expect": { "path": "contents.value", "matches": "human-readable name" }
+    },
+    {
+      "name": "definition",
+      "method": "textDocument/definition",
+      "position": [3, 8],
+      "expect": { "path": "*.targetSelectionRange.start.line", "includes": 2 }
+    },
+    {
+      "name": "document symbols",
+      "method": "textDocument/documentSymbol",
+      "expect": { "path": "*.name", "includes": "items" }
+    },
+    {
+      "name": "document links",
+      "method": "textDocument/documentLink",
+      "expect": { "type": "array", "minLength": 1 }
+    },
+    {
+      "name": "folding ranges",
+      "method": "textDocument/foldingRange",
+      "expect": { "type": "array", "minLength": 1 }
+    },
+    {
+      "name": "selection ranges",
+      "method": "textDocument/selectionRange",
+      "params": { "positions": [{ "line": 4, "character": 10 }] },
+      "expect": { "path": "0.parent", "type": "object" }
+    },
+    {
+      "name": "formatting",
+      "method": "textDocument/formatting",
+      "params": { "options": { "tabSize": 2, "insertSpaces": true } },
+      "expect": { "type": "array", "minLength": 1 }
+    },
+    {
+      "name": "on-type formatting",
+      "method": "textDocument/onTypeFormatting",
+      "position": [6, 0],
+      "params": { "ch": "\n", "options": { "tabSize": 2, "insertSpaces": true } },
+      "expect": { "type": "array", "minLength": 1 }
+    },
+    {
+      "name": "prepare rename",
+      "method": "textDocument/prepareRename",
+      "position": [2, 10],
+      "expect": { "path": "start.character", "equals": 9 }
+    },
+    {
+      "name": "rename",
+      "method": "textDocument/rename",
+      "position": [2, 10],
+      "params": { "newName": "renamed" },
+      "expect": { "path": "changes", "type": "object", "minLength": 1 }
+    },
+    {
+      "name": "code actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": {
+          "check": "diagnostics",
+          "path": "$",
+          "find": { "path": "code", "equals": 0 },
+          "select": "range"
+        },
+        "context.diagnostics": { "check": "diagnostics", "path": "$" }
+      },
+      "expect": { "path": "*.command.command", "includes": "jumpToSchema" }
+    },
+    {
+      "name": "code lenses",
+      "method": "textDocument/codeLens",
+      "expect": { "path": "*.command.command", "includes": "jumpToSchema" }
+    },
+    {
+      "name": "execute command",
+      "method": "workspace/executeCommand",
+      "document": false,
+      "paramsFrom": {
+        "$": {
+          "check": "code actions",
+          "path": "$",
+          "find": { "path": "command.command", "equals": "jumpToSchema" },
+          "select": "command"
+        }
+      },
+      "expect": { "type": "null" }
+    },
+    {
+      "name": "restart lifecycle",
+      "kind": "restart",
+      "expect": { "path": "current", "equals": "running" }
+    }
+  ]
+}
