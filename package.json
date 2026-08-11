@@ -46,7 +46,8 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-n": "^18.2.2",
     "globals": "^17.9.0",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "vscode-jsonrpc": "^9.0.1"
   },
   "configSchema": {
     "serverPath": {
