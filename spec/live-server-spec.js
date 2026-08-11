@@ -2,7 +2,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const main = require("../lib/main");
-const { LiveLspClient, fileUri, positionParams } = require("./helpers/live-lsp-client");
+const { LiveLspClient, fileUri, position, positionParams } = require("./helpers/live-lsp-client");
 
 const registerAdapter = () => {
   let adapter;
@@ -59,6 +59,8 @@ describe("ide-yaml bundled server", () => {
           copy: { type: "string" },
           items: { type: "array", items: { type: "string" } },
           parent: { type: "object" },
+          group: { type: "object" },
+          $ref: { type: "string" },
         },
         additionalProperties: false,
       }),
@@ -77,6 +79,10 @@ describe("ide-yaml bundled server", () => {
       "items: [one,two]",
       "parent:",
       "",
+      "group:",
+      "  child: value",
+      '$ref: "#/name"',
+      "",
     ].join("\n");
     fs.writeFileSync(filePath, source);
     const uri = fileUri(filePath);
@@ -91,6 +97,10 @@ describe("ide-yaml bundled server", () => {
     expect(capabilities.renameProvider.prepareProvider).toBe(true);
     expect(capabilities.codeActionProvider).toBe(true);
     expect(capabilities.codeLensProvider).toBeDefined();
+    expect(capabilities.documentLinkProvider).toBeDefined();
+    expect(capabilities.foldingRangeProvider).toBe(true);
+    expect(capabilities.selectionRangeProvider).toBe(true);
+    expect(capabilities.executeCommandProvider.commands).toContain("jumpToSchema");
 
     const formatterRegistration = await client.waitFor(
       () => client.registrations.find(({ method }) => method === "textDocument/formatting"),
@@ -123,6 +133,22 @@ describe("ide-yaml bundled server", () => {
     expect(symbols.map(({ name }) => name)).toContain("items");
     expect(symbols.find(({ name }) => name === "items").children.length).toBe(2);
 
+    const links = await client.request("textDocument/documentLink", {
+      textDocument: { uri },
+    });
+    expect(links[0].target).toContain("#1,");
+
+    const folding = await client.request("textDocument/foldingRange", {
+      textDocument: { uri },
+    });
+    expect(folding.length).toBeGreaterThan(0);
+
+    const selection = await client.request("textDocument/selectionRange", {
+      textDocument: { uri },
+      positions: [position(3, 10)],
+    });
+    expect(selection[0].parent).toBeDefined();
+
     const edits = await client.request("textDocument/formatting", {
       textDocument: { uri },
       options: { tabSize: 2, insertSpaces: true },
@@ -151,6 +177,12 @@ describe("ide-yaml bundled server", () => {
       context: { diagnostics: [typeDiagnostic] },
     });
     expect(actions[0].command.command).toBe("jumpToSchema");
+    expect(
+      await client.request("workspace/executeCommand", {
+        command: actions[0].command.command,
+        arguments: actions[0].command.arguments,
+      }),
+    ).toBeNull();
 
     const lenses = await client.request("textDocument/codeLens", {
       textDocument: { uri },
