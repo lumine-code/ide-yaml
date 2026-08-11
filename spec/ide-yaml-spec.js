@@ -114,3 +114,39 @@ describe("ide-yaml adapter", () => {
     ]);
   });
 });
+
+describe("ide-yaml feature contracts", () => {
+  const features = [
+    "diagnostics",
+    "autocomplete",
+    "hover",
+    "definition",
+    "symbols",
+    "outline",
+    "format",
+    "rename",
+    "codeActions",
+    "codeLens",
+  ];
+  const definitions = require("../package.json").configSchema.features.properties;
+
+  beforeEach(async () => {
+    await lumine.packages.activatePackage("ide-yaml");
+  });
+
+  afterEach(async () => {
+    for (const feature of features) lumine.config.unset(`ide-yaml.features.${feature}`);
+    await lumine.packages.deactivatePackage("ide-yaml");
+  });
+
+  for (const feature of features) {
+    it(`exposes ${feature} as an independent enabled-by-default switch`, () => {
+      expect(definitions[feature].type).toBe("boolean");
+      expect(definitions[feature].default).toBe(true);
+      const keyPath = `ide-yaml.features.${feature}`;
+      expect(lumine.config.get(keyPath)).toBe(true);
+      lumine.config.set(keyPath, false);
+      expect(lumine.config.get(keyPath)).toBe(false);
+    });
+  }
+});
