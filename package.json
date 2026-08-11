@@ -1,0 +1,336 @@
+{
+  "name": "ide-yaml",
+  "author": "lumine-code",
+  "description": "YAML language-server adapter.",
+  "repository": "https://github.com/lumine-code/ide-yaml",
+  "bugs": {
+    "url": "https://github.com/lumine-code/ide-yaml/issues"
+  },
+  "keywords": [
+    "language-server",
+    "lsp",
+    "json-schema",
+    "schemastore",
+    "kubernetes",
+    "intellisense"
+  ],
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "lumine": "^1.0.0"
+  },
+  "main": "./lib/main",
+  "files": [
+    "lib",
+    "spec"
+  ],
+  "scripts": {
+    "test": "lumine --test spec",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "consumedServices": {
+    "ide-client": {
+      "versions": {
+        "^1.0.0": "consumeIdeClient"
+      }
+    }
+  },
+  "dependencies": {
+    "yaml-language-server": "1.24.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-n": "^18.2.2",
+    "globals": "^17.9.0",
+    "prettier": "^3.9.6"
+  },
+  "configSchema": {
+    "serverPath": {
+      "title": "Server Path",
+      "description": "Absolute path to a `yaml-language-server` executable. Leave empty to use the bundled server.",
+      "type": "string",
+      "default": ""
+    },
+    "features": {
+      "title": "Features",
+      "description": "Which parts of the YAML server the editor uses. Turning one off hands it to the next server serving the same file.",
+      "type": "object",
+      "properties": {
+        "diagnostics": {
+          "title": "Diagnostics",
+          "description": "Report syntax and schema validation errors in the linter.",
+          "type": "boolean",
+          "default": true
+        },
+        "autocomplete": {
+          "title": "Autocomplete",
+          "description": "Offer keys, values and document structure from the active schema.",
+          "type": "boolean",
+          "default": true
+        },
+        "hover": {
+          "title": "Hover",
+          "description": "Show schema descriptions and anchor information on hover.",
+          "type": "boolean",
+          "default": true
+        },
+        "definition": {
+          "title": "Go To Definition",
+          "description": "Jump from an alias to its anchor.",
+          "type": "boolean",
+          "default": true
+        },
+        "symbols": {
+          "title": "Symbols",
+          "description": "Serve document symbols to go-to-symbol.",
+          "type": "boolean",
+          "default": true
+        },
+        "outline": {
+          "title": "Outline",
+          "description": "Fill the outline panel with the document's mappings and sequences.",
+          "type": "boolean",
+          "default": true
+        },
+        "format": {
+          "title": "Format",
+          "description": "Format documents and indent new mapping and sequence entries.",
+          "type": "boolean",
+          "default": true
+        },
+        "rename": {
+          "title": "Rename",
+          "description": "Rename anchors and their aliases together.",
+          "type": "boolean",
+          "default": true
+        },
+        "codeActions": {
+          "title": "Code Actions",
+          "description": "Offer YAML fixes in the intentions list.",
+          "type": "boolean",
+          "default": true
+        },
+        "codeLens": {
+          "title": "Code Lens",
+          "description": "Show links for schemas associated with the document.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "yaml": {
+      "title": "YAML",
+      "description": "Parsing, schema and formatting options sent to the language server.",
+      "type": "object",
+      "properties": {
+        "yamlVersion": {
+          "title": "YAML Version",
+          "description": "YAML specification used when a document does not choose one itself.",
+          "type": "string",
+          "enum": [
+            "1.2",
+            "1.1"
+          ],
+          "default": "1.2"
+        },
+        "maxItemsComputed": {
+          "title": "Maximum Computed Items",
+          "description": "Maximum document symbols and folding regions computed for one document.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 5000
+        },
+        "schemas": {
+          "title": "Schemas",
+          "description": "Schema URI or path keys mapped to a file glob or array of globs.",
+          "type": "object",
+          "default": {}
+        },
+        "disableSchemaDetection": {
+          "title": "Schema Detection Exclusions",
+          "description": "File globs for which detected schemas are ignored. A modeline still takes precedence.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "schemaStore": {
+          "title": "SchemaStore",
+          "description": "Automatic schema associations from a SchemaStore-compatible catalog.",
+          "type": "object",
+          "properties": {
+            "enable": {
+              "title": "Enabled",
+              "description": "Download the catalog and associate known schemas with matching files.",
+              "type": "boolean",
+              "default": true
+            },
+            "url": {
+              "title": "Catalog URL",
+              "description": "URL of the SchemaStore-compatible JSON catalog.",
+              "type": "string",
+              "default": "https://www.schemastore.org/api/json/catalog.json"
+            }
+          }
+        },
+        "customTags": {
+          "title": "Custom Tags",
+          "description": "Tags accepted by the parser, optionally followed by `scalar`, `sequence` or `mapping` and a return type.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "disableAdditionalProperties": {
+          "title": "Disallow Additional Properties",
+          "description": "Treat every schema object as if `additionalProperties` were false.",
+          "type": "boolean",
+          "default": false
+        },
+        "disableDefaultProperties": {
+          "title": "Hide Optional Defaults",
+          "description": "Do not offer optional properties merely because their schema defines a default.",
+          "type": "boolean",
+          "default": false
+        },
+        "parentSkeletonSelectedFirst": {
+          "title": "Parent Skeleton First",
+          "description": "Require the parent object skeleton to be accepted before its properties are offered in an empty object.",
+          "type": "boolean",
+          "default": false
+        },
+        "hoverAnchor": {
+          "title": "Anchor Hover",
+          "description": "Include anchor information in hover results.",
+          "type": "boolean",
+          "default": true
+        },
+        "hoverSchemaSource": {
+          "title": "Schema Source In Hover",
+          "description": "Name the schema providing a hover description.",
+          "type": "boolean",
+          "default": true
+        },
+        "kubernetesCRDStore": {
+          "title": "Kubernetes CRD Store",
+          "description": "Schemas for well-known Kubernetes custom resources.",
+          "type": "object",
+          "properties": {
+            "enable": {
+              "title": "Enabled",
+              "description": "Download schemas for well-known custom resource definitions.",
+              "type": "boolean",
+              "default": true
+            },
+            "url": {
+              "title": "Catalog URL",
+              "description": "Base URL from which custom resource schemas are downloaded.",
+              "type": "string",
+              "default": "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main"
+            }
+          }
+        },
+        "kubernetesVersion": {
+          "title": "Kubernetes Version",
+          "description": "Version used when a schema mapping names the `kubernetes` schema. Leave empty for the server default.",
+          "type": "string",
+          "default": ""
+        },
+        "flowMapping": {
+          "title": "Flow Mappings",
+          "description": "Whether object mappings written inside braces are allowed.",
+          "type": "string",
+          "enum": [
+            "allow",
+            "forbid"
+          ],
+          "default": "allow"
+        },
+        "flowSequence": {
+          "title": "Flow Sequences",
+          "description": "Whether sequences written inside brackets are allowed.",
+          "type": "string",
+          "enum": [
+            "allow",
+            "forbid"
+          ],
+          "default": "allow"
+        },
+        "keyOrdering": {
+          "title": "Key Ordering",
+          "description": "Report mapping keys that are not in alphabetical order.",
+          "type": "boolean",
+          "default": false
+        },
+        "format": {
+          "title": "Formatting",
+          "description": "How the built-in formatter writes YAML documents.",
+          "type": "object",
+          "properties": {
+            "singleQuote": {
+              "title": "Single Quotes",
+              "description": "Prefer single quotes over double quotes.",
+              "type": "boolean",
+              "default": false
+            },
+            "bracketSpacing": {
+              "title": "Bracket Spacing",
+              "description": "Put spaces inside braces in flow mappings.",
+              "type": "boolean",
+              "default": true
+            },
+            "proseWrap": {
+              "title": "Prose Wrapping",
+              "description": "How prose is wrapped at the print width.",
+              "type": "string",
+              "enum": [
+                "preserve",
+                "always",
+                "never"
+              ],
+              "default": "preserve"
+            },
+            "printWidth": {
+              "title": "Print Width",
+              "description": "Column at which the formatter wraps content.",
+              "type": "integer",
+              "minimum": 1,
+              "default": 80
+            },
+            "trailingComma": {
+              "title": "Trailing Commas",
+              "description": "Keep trailing commas in JSON-like YAML segments.",
+              "type": "boolean",
+              "default": true
+            }
+          }
+        }
+      }
+    },
+    "http": {
+      "title": "HTTP",
+      "description": "Proxy used when the server downloads schema catalogs and schemas.",
+      "type": "object",
+      "properties": {
+        "proxy": {
+          "title": "Proxy",
+          "description": "Proxy URL. Leave empty for a direct connection.",
+          "type": "string",
+          "default": ""
+        },
+        "proxyStrictSSL": {
+          "title": "Verify Proxy Certificates",
+          "description": "Verify the proxy certificate against the trusted certificate authorities.",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

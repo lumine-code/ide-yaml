@@ -1,0 +1,116 @@
+const fs = require("fs");
+const path = require("path");
+const { resolveServer } = require("../lib/server");
+const main = require("../lib/main");
+
+const registerAdapter = () => {
+  let adapter;
+  const disposable = main.consumeIdeClient({
+    registerAdapter(registered) {
+      adapter = registered;
+      return { dispose() {} };
+    },
+    getSessions: () => [],
+    restart: async () => {},
+  });
+  return { adapter, disposable };
+};
+
+describe("ide-yaml server resolution", () => {
+  it("prefers the configured path", async () => {
+    const launch = await resolveServer(process.execPath);
+    expect(launch.command).toBe(process.execPath);
+    expect(launch.args).toEqual(["--stdio"]);
+  });
+
+  it("falls back to the bundled server module", async () => {
+    const launch = await resolveServer("");
+    expect(launch.command).toBe(process.execPath);
+    expect(fs.existsSync(launch.args[0])).toBe(true);
+    expect(launch.args[1]).toBe("--stdio");
+    expect(launch.env.ELECTRON_RUN_AS_NODE).toBe("1");
+  });
+});
+
+describe("ide-yaml adapter", () => {
+  let adapter;
+  let disposable;
+
+  beforeEach(async () => {
+    await lumine.packages.activatePackage("ide-yaml");
+    ({ adapter, disposable } = registerAdapter());
+  });
+
+  afterEach(async () => {
+    disposable.dispose();
+    await lumine.packages.deactivatePackage("ide-yaml");
+  });
+
+  it("registers with the language-server service", async () => {
+    expect(adapter.id).toBe("ide-yaml");
+    expect(adapter.grammarScopes).toEqual(["source.yaml"]);
+    expect(adapter.settingsKeyPaths).toEqual(["ide-yaml"]);
+    const launch = await adapter.resolveServer({ rootPath: __dirname });
+    expect(launch.cwd).toBe(__dirname);
+    expect(launch.transport).toBe("stdio");
+  });
+
+  it("maps feature switches onto work the server can avoid", () => {
+    lumine.config.set("ide-yaml.features.diagnostics", false);
+    lumine.config.set("ide-yaml.features.autocomplete", false);
+    lumine.config.set("ide-yaml.features.hover", false);
+    lumine.config.set("ide-yaml.features.format", false);
+
+    const yaml = adapter.getWorkspaceConfiguration("yaml");
+    expect(yaml.validate).toBe(false);
+    expect(yaml.completion).toBe(false);
+    expect(yaml.hover).toBe(false);
+    expect(yaml.format.enable).toBe(false);
+  });
+
+  it("transcribes schema and formatter settings", () => {
+    lumine.config.set("ide-yaml.yaml.schemas", {
+      "schema.json": ["config/*.yaml"],
+    });
+    lumine.config.set("ide-yaml.yaml.customTags", ["!Ref scalar"]);
+    lumine.config.set("ide-yaml.yaml.format.printWidth", 100);
+    lumine.config.set("ide-yaml.yaml.flowSequence", "forbid");
+
+    const yaml = adapter.getSettings().yaml;
+    expect(yaml.schemas["schema.json"]).toEqual(["config/*.yaml"]);
+    expect(yaml.customTags).toEqual(["!Ref scalar"]);
+    expect(yaml.format.printWidth).toBe(100);
+    expect(yaml.style.flowSequence).toBe("forbid");
+  });
+
+  it("answers the configuration sections the server pulls", async () => {
+    lumine.config.set("editor.tabLength", 6);
+    const filePath = path.join(__dirname, "fixture.yaml");
+    const editor = await lumine.workspace.open(filePath);
+    editor.setTabLength(3);
+    editor.setSoftTabs(true);
+    const uri = `file:///${filePath.replaceAll("\\", "/")}`;
+
+    expect(adapter.getWorkspaceConfiguration("yaml", uri).yamlVersion).toBe("1.2");
+    expect(adapter.getWorkspaceConfiguration("http", uri).proxyStrictSSL).toBe(false);
+    expect(adapter.getWorkspaceConfiguration("[yaml]", uri)["editor.tabSize"]).toBe(3);
+    expect(adapter.getWorkspaceConfiguration("editor", uri).detectIndentation).toBe(false);
+    expect(adapter.getWorkspaceConfiguration("files", uri)).toEqual({ associations: {} });
+  });
+
+  it("offers switches for exactly the capabilities the server advertises", () => {
+    const { configSchema } = require("../package.json");
+    expect(Object.keys(configSchema.features.properties)).toEqual([
+      "diagnostics",
+      "autocomplete",
+      "hover",
+      "definition",
+      "symbols",
+      "outline",
+      "format",
+      "rename",
+      "codeActions",
+      "codeLens",
+    ]);
+  });
+});
