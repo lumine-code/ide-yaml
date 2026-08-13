@@ -7,6 +7,7 @@ Registers [yaml-language-server](https://github.com/redhat-developer/yaml-langua
 ## Features
 
 - **Bundled server**: ships an exact yaml-language-server version, with an optional custom executable path.
+- **Managed upgrade**: installs a newer server from npm when you want one, and removing it returns to the bundled copy.
 - **Schema intelligence**: associates local, remote, SchemaStore, and Kubernetes schemas with file patterns.
 - **Validation**: reports YAML syntax, schema, style, and key-ordering problems in the linter.
 - **Formatting**: formats documents and indents new entries using the open editor's indentation.
