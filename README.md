@@ -17,11 +17,11 @@ Registers [yaml-language-server](https://github.com/redhat-developer/yaml-langua
 
 ## Installation
 
-To install `ide-yaml` search for _ide-yaml_ in the Install pane of the Lumine settings or run `lumine --install lumine-code/ide-yaml`.
+To install `ide-yaml` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/ide-yaml`.
 
 ## Services
 
-- **ide-client** (`^1.0.0`): consumed to register the YAML adapter with the editor's language-server client.
+- `ide-client`: consumed to register the YAML adapter with the editor's language-server client.
 
 ## Contributing
 
