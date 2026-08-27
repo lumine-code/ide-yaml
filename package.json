@@ -59,65 +59,76 @@
     "features": {
       "title": "Features",
       "description": "Which parts of the YAML server the editor uses. Turning one off hands it to the next server serving the same file.",
+      "scopeResolution": "grammar",
       "type": "object",
       "properties": {
         "diagnostics": {
           "title": "Diagnostics",
           "description": "Report syntax and schema validation errors in the linter.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "autocomplete": {
           "title": "Autocomplete",
           "description": "Offer keys, values and document structure from the active schema.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "hover": {
           "title": "Hover",
           "description": "Show schema descriptions and anchor information on hover.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "definition": {
           "title": "Go To Definition",
           "description": "Jump from an alias to its anchor.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "symbols": {
           "title": "Symbols",
           "description": "Serve document symbols to go-to-symbol.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "outline": {
           "title": "Outline",
           "description": "Fill the outline panel with the document's mappings and sequences.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "format": {
           "title": "Format",
           "description": "Format documents and indent new mapping and sequence entries.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "rename": {
           "title": "Rename",
           "description": "Rename anchors and their aliases together.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "codeActions": {
           "title": "Code Actions",
           "description": "Offer YAML fixes in the intentions list.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "codeLens": {
           "title": "Code Lens",
           "description": "Show links for schemas associated with the document.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         }
