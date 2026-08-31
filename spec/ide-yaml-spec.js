@@ -67,6 +67,7 @@ describe("ide-yaml adapter", () => {
     expect(adapter.id).toBe("ide-yaml");
     expect(adapter.grammarScopes).toEqual(["source.yaml"]);
     expect(adapter.settingsKeyPaths).toEqual(["ide-yaml"]);
+    expect(adapter.restartKeyPaths).toEqual(["ide-yaml.serverPath"]);
     const launch = await adapter.resolveServer({ rootPath: __dirname });
     expect(launch.cwd).toBe(__dirname);
     expect(launch.transport).toBe("stdio");
