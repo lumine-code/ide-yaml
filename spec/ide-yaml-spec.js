@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 const { resolveServer, managedServer } = require("../lib/server");
 const main = require("../lib/main");
 
@@ -66,24 +67,24 @@ describe("ide-yaml adapter", () => {
   it("registers with the language-server service", async () => {
     expect(adapter.id).toBe("ide-yaml");
     expect(adapter.grammarScopes).toEqual(["source.yaml"]);
-    expect(adapter.settingsKeyPaths).toEqual(["ide-yaml"]);
-    expect(adapter.restartKeyPaths).toEqual(["ide-yaml.serverPath"]);
+    expect(adapter.settingsKeyPaths).toEqual(["ide-yaml", "core.customFileTypes"]);
+    expect(adapter.restartKeyPaths).toEqual(["ide-yaml.serverPath", "core.customFileTypes"]);
     const launch = await adapter.resolveServer({ rootPath: __dirname });
     expect(launch.cwd).toBe(__dirname);
     expect(launch.transport).toBe("stdio");
   });
 
-  it("maps feature switches onto work the server can avoid", () => {
+  it("keeps server capabilities available for grammar-scoped feature overrides", () => {
     lumine.config.set("ide-yaml.features.diagnostics", false);
     lumine.config.set("ide-yaml.features.autocomplete", false);
     lumine.config.set("ide-yaml.features.hover", false);
     lumine.config.set("ide-yaml.features.format", false);
 
     const yaml = adapter.getWorkspaceConfiguration("yaml");
-    expect(yaml.validate).toBe(false);
-    expect(yaml.completion).toBe(false);
-    expect(yaml.hover).toBe(false);
-    expect(yaml.format.enable).toBe(false);
+    expect(yaml.validate).toBe(true);
+    expect(yaml.completion).toBe(true);
+    expect(yaml.hover).toBe(true);
+    expect(yaml.format.enable).toBe(true);
   });
 
   it("transcribes schema and formatter settings", () => {
@@ -102,18 +103,30 @@ describe("ide-yaml adapter", () => {
   });
 
   it("answers the configuration sections the server pulls", async () => {
+    await lumine.packages.activatePackage("language-yaml");
     lumine.config.set("editor.tabLength", 6);
     const filePath = path.join(__dirname, "fixture.yaml");
     const editor = await lumine.workspace.open(filePath);
     editor.setTabLength(3);
     editor.setSoftTabs(true);
-    const uri = `file:///${filePath.replaceAll("\\", "/")}`;
+    const uri = pathToFileURL(filePath).href;
 
     expect(adapter.getWorkspaceConfiguration("yaml", uri).yamlVersion).toBe("1.2");
     expect(adapter.getWorkspaceConfiguration("http", uri).proxyStrictSSL).toBe(false);
     expect(adapter.getWorkspaceConfiguration("[yaml]", uri)["editor.tabSize"]).toBe(3);
     expect(adapter.getWorkspaceConfiguration("editor", uri).detectIndentation).toBe(false);
-    expect(adapter.getWorkspaceConfiguration("files", uri)).toEqual({ associations: {} });
+    const lowerDriveUri = process.platform === "win32" ? uri.toLowerCase() : uri;
+    expect(adapter.getWorkspaceConfiguration("[yaml]", lowerDriveUri)["editor.tabSize"]).toBe(3);
+    lumine.config.set("core.customFileTypes", { "source.yaml": ["workflow", ".pipeline"] });
+    const associations = adapter.getWorkspaceConfiguration("files", uri).associations;
+    expect(associations["*.yaml"]).toBe("yaml");
+    expect(associations["*.sls"]).toBe("yaml");
+    expect(associations.Boxfile).toBe("yaml");
+    expect(associations[".clang-format"]).toBe("yaml");
+    expect(associations["*.sublime-syntax"]).toBe("yaml");
+    expect(associations["*.workflow"]).toBe("yaml");
+    expect(associations["*.pipeline"]).toBe("yaml");
+    await lumine.packages.deactivatePackage("language-yaml");
   });
 
   it("offers switches for exactly the capabilities the server advertises", () => {
