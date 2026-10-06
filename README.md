@@ -2,7 +2,7 @@
 
 YAML language-server adapter.
 
-Registers [yaml-language-server](https://github.com/redhat-developer/yaml-language-server) with the `ide-client` package, providing schema-aware completion, validation, navigation, and formatting for YAML documents.
+Registers [yaml-language-server](https://github.com/redhat-developer/yaml-language-server) with the `ide` package, providing schema-aware completion, validation, navigation, and formatting for YAML documents.
 
 ## Features
 
@@ -20,11 +20,11 @@ Registers [yaml-language-server](https://github.com/redhat-developer/yaml-langua
 
 To install `ide-yaml` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/ide-yaml`.
 
-Install `ide-client` first.
+Install `ide` first.
 
 ## Services
 
-- `ide-client`: consumed to register the YAML adapter with the editor's language-server client.
+- `ide`: consumed to register the YAML adapter with the editor's language-server client.
 
 ## Contributing
 
