@@ -1,7 +1,11 @@
+const { serverContext } = require("./helpers/server-context");
 const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
-const { resolveServer, managedServer } = require("../lib/server");
+const { resolveServer: resolveServerWithContext, managedServer } = require("../lib/server");
+const resolveServer = (configuredPath, managedServer = null) =>
+  resolveServerWithContext(serverContext({ rootPath: __dirname, managedServer }), configuredPath);
+
 const main = require("../lib/main");
 
 const registerAdapter = () => {
@@ -33,7 +37,10 @@ describe("ide-yaml server resolution", () => {
   });
 
   it("prefers a managed install over the bundled server", async () => {
-    const managed = { modulePath: "/managed/server.js", version: "9.9.9" };
+    const managed = {
+      modulePath: require.resolve("yaml-language-server/bin/yaml-language-server"),
+      version: "9.9.9",
+    };
     const launch = await resolveServer("", managed);
     expect(launch.args[0]).toBe(managed.modulePath);
     // Reported in the session details, so which copy is running is visible.
@@ -69,7 +76,7 @@ describe("ide-yaml adapter", () => {
     expect(adapter.grammarScopes).toEqual(["source.yaml"]);
     expect(adapter.settingsKeyPaths).toEqual(["ide-yaml", "core.customFileTypes"]);
     expect(adapter.restartKeyPaths).toEqual(["ide-yaml.serverPath", "core.customFileTypes"]);
-    const launch = await adapter.resolveServer({ rootPath: __dirname });
+    const launch = await adapter.resolveServer(serverContext({ rootPath: __dirname }));
     expect(launch.cwd).toBe(__dirname);
     expect(launch.transport).toBe("stdio");
   });
@@ -178,4 +185,12 @@ describe("ide-yaml feature contracts", () => {
       expect(lumine.config.get(keyPath)).toBe(false);
     });
   }
+});
+
+describe("ide-yaml shared server resolution", () => {
+  it("preserves an unavailable selection as null", async () => {
+    const { resolveServer: resolveWithContext } = require("../lib/server");
+    const resolver = { select: jasmine.createSpy("select").and.resolveTo(null) };
+    expect(await resolveWithContext({ rootPath: __dirname, resolver }, "")).toBeNull();
+  });
 });
