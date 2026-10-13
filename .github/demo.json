@@ -1,0 +1,16 @@
+{
+  "title": "ide-yaml",
+  "description": "The YAML language server identifies a duplicate mapping key.",
+  "recordedOn": "2026-10-13",
+  "sourceRevision": "c20fbf4ac26c663e62beb7efbe4c219848d9c29d",
+  "mode": "normal",
+  "fontSettings": "default",
+  "images": [
+    {
+      "file": "demo.png",
+      "label": "The YAML language server identifies a duplicate mapping key.",
+      "width": 1100,
+      "height": 490
+    }
+  ]
+}

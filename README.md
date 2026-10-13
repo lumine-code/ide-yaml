@@ -16,6 +16,8 @@ Registers [yaml-language-server](https://github.com/redhat-developer/yaml-langua
 - **Feature switches**: each capability can be handed to another language server serving the same file.
 - **Project sessions**: one server per project root, started lazily with the first YAML editor.
 
+![The YAML language server identifies a duplicate mapping key.](.github/demo.png)
+
 ## Installation
 
 To install `ide-yaml` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/ide-yaml`.
