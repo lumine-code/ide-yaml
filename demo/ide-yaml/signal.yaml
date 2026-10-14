@@ -1,0 +1,8 @@
+name: signal-lab
+processing:
+  window: 3
+  normalize: true
+  window: 5
+output:
+  format: csv
+  path: results/smoothed.csv
